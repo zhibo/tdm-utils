@@ -18,23 +18,74 @@
 #include <string.h>
 #include <stdlib.h>
 
+enum tdm_trust_status {
+    TRUSTED = 0x01,
+    UNTRUSTED,
+    UNKNOWN,
+};
+
+typedef struct degree{
+    int deg;
+    int thd;
+    enum tdm_trust_status sts;
+}tdm_value;
+
+
+static int dump_tdm_value(tdm_value *degr)
+{
+    if (NULL == degr)
+        return -1;
+    printf("degree: %d threshold: %d status: %d\n",
+            degr->deg, degr->thd, degr->sts);
+    return 0;
+}
+
 static int set_degree(const char *file)
 {
     int err, len;
     /* TODO: ugly
      */
-    struct degree{
-        int deg;
-        int thd;
-    };
-    struct degree *degr = malloc(sizeof(struct degree));
+    tdm_value *degr = malloc(sizeof(tdm_value));
     degr->deg = 100;
     degr->thd = 90;
-    len = sizeof(degr);
+    degr->sts = TRUSTED;
+    len = sizeof(tdm_value);
     err = setxattr(file, "security.tdm", degr, len, 0);
 	if (err < 0) {
 		printf("setxattr failed: %s\n", file);
 		return err;
+    }
+    printf("%s: setxattr ok!\n", file);
+    return 0;
+}
+
+static int _get_degree(const char *file, tdm_value *degr, int *len)
+{
+    int err;
+    *len = sizeof(tdm_value);
+    err = getxattr(file, "security.tdm", degr, *len);
+    if (err < 0){
+        printf("getxattr failed: %s\n", file);
+        return err;
+    }
+    return 0;
+}
+
+static int get_degree(const char *file)
+{
+    tdm_value *degr = malloc(sizeof(tdm_value));
+    int err, len = 0;
+    err = _get_degree(file, degr, &len);
+    if (err < 0){
+        printf("__get_degree failed: %s\n", file);
+        return err;
+    }
+    printf("getxattr: %s\n", file);
+    printf("length: %d\n", len);
+    err = dump_tdm_value(degr);
+    if (err < 0){
+        printf("dump error: %s\n", file);
+        return err;
     }
     return 0;
 }
@@ -42,12 +93,19 @@ static int set_degree(const char *file)
 int main(int argc, char **argv)
 {
     int err;
-    if (2 != argc){
-        printf("Usage: tdmctl file\n");
+    if (3 != argc){
+        printf("Usage: tdmctl type[set|get] filename\n");
         return 0;
     }
-    char *file = argv[1];
-    err = set_degree(file);
+    char *type = argv[1];
+    char *file = argv[2];
+    if (strcmp(type, "set") == 0){
+        err = set_degree(file);
+    }else if (strcmp(type, "get") == 0){
+        err = get_degree(file);
+    }else{
+        err = -1;
+    }
     if (0 != err)
         return err;
     return 0;

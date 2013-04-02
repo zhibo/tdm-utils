@@ -16,15 +16,22 @@
 #include <attr/xattr.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 static int set_degree(const char *file)
 {
     int err, len;
     /* TODO: ugly
      */
-    char *degree = "100";
-    len = strlen(degree);
-    err = setxattr(file, "security.tdm", degree, len, 0);
+    struct degree{
+        int deg;
+        int thd;
+    };
+    struct degree *degr = malloc(sizeof(struct degree));
+    degr->deg = 100;
+    degr->thd = 90;
+    len = sizeof(degr);
+    err = setxattr(file, "security.tdm", degr, len, 0);
 	if (err < 0) {
 		printf("setxattr failed: %s\n", file);
 		return err;

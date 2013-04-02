@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 {
     int err;
     if (2 != argc){
-        printf("Usage: tdmctl file degree\n");
+        printf("Usage: tdmctl file\n");
         return 0;
     }
     char *file = argv[1];

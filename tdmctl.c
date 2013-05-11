@@ -24,11 +24,15 @@ enum tdm_trust_status {
     UNKNOWN,
 };
 
-typedef struct degree{
-    int deg;
-    int thd;
+typedef short int8;
+
+struct degree{
+    int8 deg;
+    int8 thd;
     enum tdm_trust_status sts;
-}tdm_value;
+} __attribute__((packed));
+
+typedef struct degree tdm_value;
 
 
 static int dump_tdm_value(tdm_value *degr)
